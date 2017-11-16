@@ -6,6 +6,9 @@
   "author": "Julien Biezemans, Aslak Hellesøy, Steve Tooke, Romain Gerard, Matt Wynne, Josh Chisholm",
   "license": "MIT",
   "private": false,
+  "scripts": {
+    "test": "mocha"
+  },
   "dependencies": {
     "caller": "^1.0.1",
     "es6-error": "^4.0.2",
