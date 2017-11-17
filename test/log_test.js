@@ -5,6 +5,8 @@ const Log = require('../lib/log')
 
 describe('log', () => {
   it('generates a log name that includes file name', () => {
-    assert.equal(Log.name(__filename), 'kaesong:test/log_test.js')
+    const [logTag, logPath] = Log.name(__filename).split(':')
+    assert.equal(logTag, 'kaesong')
+    assert(__filename.endsWith(logPath))
   })
 })
