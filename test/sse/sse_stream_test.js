@@ -101,15 +101,26 @@ data: hello
   })
 
   it('allows an eventsource to connect', callback => {
+    let error
     const server = http.createServer((req, res) => {
       sse.pipe(res)
     })
+    server.on('close', (err) => {
+      if (err)
+        callback(err)
+      callback(error)
+    })
     server.listen(err => {
-      if (err) return callback(err)
+      if (err) return cleanup(err)
       const es = new EventSource(`http://localhost:${server.address().port}`)
-      es.onopen = () => callback()
+      const cleanup = (err) => {
+        error = err
+        es.close()
+        server.close()
+      }
+      es.onopen = () => cleanup()
       es.onerror = e =>
-        callback(new Error(`Error from EventSource: ${JSON.stringify(e)}`))
+        cleanup(new Error(`Error from EventSource: ${JSON.stringify(e)}`))
     })
   })
 })
