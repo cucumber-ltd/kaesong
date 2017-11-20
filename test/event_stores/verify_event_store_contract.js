@@ -2,21 +2,20 @@
 
 const assert = require('assert')
 const uid = require('uuid')
-const { define } = require('tdb')
 const arrayToStream = require('../../lib/array_to_stream')
 const Event = require('../../lib/event')
-const make = require('../../test_support/make')
 
 const { deserializeForNamespaces } = require('value-object')
 class TestEvent extends Event {}
 const deserialize = deserializeForNamespaces([{ TestEvent }])
 
-define(TestEvent).constructWith({
-  entityUid: () => uid.v4(),
-  timestamp: new Date(),
-  isBeingReplayed: false,
-  entityVersion: 1,
-})
+const makeTestEvent = () =>
+  new TestEvent({
+    entityUid:  uid.v4(),
+    timestamp: new Date(),
+    isBeingReplayed: false,
+    entityVersion: 1,
+  })
 
 module.exports = function verifyEventStoreContract(factory) {
   describe('EventStore contract', () => {
@@ -54,9 +53,9 @@ module.exports = function verifyEventStoreContract(factory) {
           callback()
         })
       })
-      const event1 = make(TestEvent).with({ entityUid, entityVersion: 1 })
-      const event2 = make(TestEvent).with({ entityUid: uid.v4() })
-      const event3 = make(TestEvent).with({ entityUid, entityVersion: 2 })
+      const event1 = makeTestEvent().with({ entityUid, entityVersion: 1 })
+      const event2 = makeTestEvent().with({ entityUid: uid.v4() })
+      const event3 = makeTestEvent().with({ entityUid, entityVersion: 2 })
       arrayToStream([event1, event2, event3]).pipe(stream)
     })
 
@@ -73,9 +72,9 @@ module.exports = function verifyEventStoreContract(factory) {
         })
       })
 
-      const event1 = make(TestEvent).with({ entityUid: uid.v4() })
-      const event2 = make(TestEvent).with({ entityUid: uid.v4() })
-      const event3 = make(TestEvent).with({ entityUid: uid.v4() })
+      const event1 = makeTestEvent().with({ entityUid: uid.v4() })
+      const event2 = makeTestEvent().with({ entityUid: uid.v4() })
+      const event3 = makeTestEvent().with({ entityUid: uid.v4() })
       arrayToStream([event1, event2, event3]).pipe(stream)
     })
 
@@ -91,8 +90,8 @@ module.exports = function verifyEventStoreContract(factory) {
         })
       })
       arrayToStream([
-        make(TestEvent),
-        make(TestEvent).with({ entityUid: 'this is not a valid UUID' }),
+        makeTestEvent(),
+        makeTestEvent().with({ entityUid: 'this is not a valid UUID' }),
       ]).pipe(stream)
     })
 
@@ -101,7 +100,7 @@ module.exports = function verifyEventStoreContract(factory) {
         assert.strictEqual(await eventStore.countAllEvents(), 3)
         callback()
       })
-      const events = [make(TestEvent), make(TestEvent), make(TestEvent)]
+      const events = [makeTestEvent(), makeTestEvent(), makeTestEvent()]
       arrayToStream(events).pipe(stream)
     })
   })

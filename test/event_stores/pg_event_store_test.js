@@ -7,10 +7,13 @@ const verifyContract = require('./verify_event_store_contract')
 const PgEventStore = require('../../lib/event_stores/pg_event_store')
 const { getPgPool, migrateDb } = require('../../lib/pg')
 
+const PG_URL = 'postgres://localhost/cpro-test'
+
 const makeEventStore = (deserialize, tableName = 'events') =>
   new PgEventStore({ basename: 'cpro', deserialize, tableName })
 
 describe('PgEventStore', () => {
+
   before(async function() {
     this.timeout(20000)
     await migrateDb({ basename: 'cpro' })
@@ -61,7 +64,7 @@ describe('PgEventStore', () => {
 
   describe('#createEmptyCopy', () => {
     it('creates an empty table with the same structure', async () => {
-      const pool = getPgPool('cpro')
+      const pool = getPgPool(PG_URL)
       await pool.query('DROP TABLE IF EXISTS new_events')
       const eventStore = makeEventStore(() => {}, 'events')
       await eventStore.start()
@@ -73,7 +76,7 @@ describe('PgEventStore', () => {
 
   describe('#renameTable', () => {
     it("renames the store's events table and return a new store for the renamed table", async () => {
-      const pool = getPgPool('cpro')
+      const pool = getPgPool(PG_URL)
       await pool.query('DROP TABLE IF EXISTS new_events')
       await pool.query('DROP TABLE IF EXISTS renamed_events')
       const eventStore = makeEventStore(() => {}, 'events')

@@ -20,6 +20,7 @@
     "value-object": "^0.0.9"
   },
   "devDependencies": {
+    "eventsource": "^1.0.5",
     "mocha": "^4.0.1",
     "sinon": "^4.1.2"
   }
