@@ -27,10 +27,6 @@ describe('PgEventStore', () => {
     await pgPool.end()
   })
 
-  afterEach(() => {
-    assert.equal(pgPool.totalCount, 0)
-  })
-
   verifyContract(makeEventStore)
 
   let eventStore
