@@ -8,15 +8,27 @@ const PgEventStore = require('../../lib/event_stores/pg_event_store')
 const { getPgPool, migrateDb } = require('../../lib/pg')
 
 const PG_URL = 'postgres://localhost/cpro-test'
-
-const makeEventStore = (deserialize, tableName = 'events') =>
-  new PgEventStore({ basename: 'cpro', deserialize, tableName })
+const logError = console.error.bind(console)
 
 describe('PgEventStore', () => {
 
+  let pgPool
+
+  const makeEventStore = (deserialize, tableName = 'events') => {
+    return new PgEventStore({ pgPool, deserialize, tableName, logError })
+  }
+
   before(async function() {
-    this.timeout(20000)
-    await migrateDb({ basename: 'cpro' })
+    pgPool = await getPgPool(PG_URL)
+    await migrateDb({ pgUrl: PG_URL })
+  })
+
+  after(async function () {
+    await pgPool.end()
+  })
+
+  afterEach(() => {
+    assert.equal(pgPool.totalCount, 0)
   })
 
   verifyContract(makeEventStore)
@@ -37,13 +49,14 @@ describe('PgEventStore', () => {
       [uid.v4(), 1, 'TestEvent', '{"__type__": "UnknownType"}']
     )
 
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       eventStore
         .streamAllEvents()
         .on('error', err => {
           assert.equal(err.message.indexOf(deserializeError.message), 0)
           resolve()
         })
+        .on('end', () => reject(new Error('Why no failure?')))
         .pipe(new Stream.PassThrough())
     })
   })
@@ -64,8 +77,7 @@ describe('PgEventStore', () => {
 
   describe('#createEmptyCopy', () => {
     it('creates an empty table with the same structure', async () => {
-      const pool = getPgPool(PG_URL)
-      await pool.query('DROP TABLE IF EXISTS new_events')
+      await pgPool.query('DROP TABLE IF EXISTS new_events')
       const eventStore = makeEventStore(() => {}, 'events')
       await eventStore.start()
       const newEventStore = await eventStore.createEmptyCopy('new_events')
@@ -76,9 +88,8 @@ describe('PgEventStore', () => {
 
   describe('#renameTable', () => {
     it("renames the store's events table and return a new store for the renamed table", async () => {
-      const pool = getPgPool(PG_URL)
-      await pool.query('DROP TABLE IF EXISTS new_events')
-      await pool.query('DROP TABLE IF EXISTS renamed_events')
+      await pgPool.query('DROP TABLE IF EXISTS new_events')
+      await pgPool.query('DROP TABLE IF EXISTS renamed_events')
       const eventStore = makeEventStore(() => {}, 'events')
       await eventStore.start()
       const newEventStore = await eventStore.createEmptyCopy('new_events')
