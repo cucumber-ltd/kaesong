@@ -49,6 +49,7 @@ jobs:
       - run:
           name: run tests
           command: yarn test
-        environment: DATABASE_URL: "postgres://ubuntu@localhost:5432/cpro-test
+        environment:
+          - DATABASE_URL: "postgres://ubuntu@localhost:5432/cpro-test"
 
 
