@@ -44,12 +44,6 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
-      - run:
-          name: Create DB
-          command: createdb -h localhost -p 5432 -U postgres cpro-test
-          environment:
-          - PG_HOST: "localhost"
-          - PG_USER: "postgres"
       # run tests!
       - run:
           name: run tests
