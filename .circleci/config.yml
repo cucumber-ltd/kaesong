@@ -8,7 +8,14 @@ jobs:
     docker:
       # specify the version you desire here
       - image: circleci/node:7.10
+        environment:
+        - PG_HOST=localhost
+        - PG_USER=ubuntu
+        - NODE_END=test
       - image: circleci/postgres:9.6.2-alpine
+        environment:
+        - POSTGRES_USER=ubuntu
+        - POSTGRES_DB=cpro-test
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -19,6 +26,9 @@ jobs:
 
     steps:
       - checkout
+      - run:
+          name: Install System Dependencies
+          command: apt-get update -qq && apt-get install -y build-essential postgresql
 
       # Download and cache dependencies
       - restore_cache:
@@ -34,7 +44,9 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
+      - run: createdb cpro-test
       # run tests!
       - run: yarn test
+        environment: DATABASE_URL: "postgres://ubuntu@localhost:5432/cpro-test
 
 
