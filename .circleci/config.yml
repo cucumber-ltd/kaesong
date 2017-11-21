@@ -46,7 +46,7 @@ jobs:
 
       - run:
           name: Create DB
-          command: createdb cpro-test
+          command: createdb -h localhost -p 5432 -U postgres cpro-test
           environment:
           - PG_HOST: "localhost"
           - PG_USER: "postgres"
