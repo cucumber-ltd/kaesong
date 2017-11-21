@@ -48,8 +48,8 @@ jobs:
           name: Create DB
           command: createdb cpro-test
           environment:
-          - PG_HOST=localhost
-          - PG_USER=postgres
+          - PG_HOST: "localhost"
+          - PG_USER: "postgres"
       # run tests!
       - run:
           name: run tests
