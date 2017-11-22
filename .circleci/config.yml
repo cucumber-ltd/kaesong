@@ -55,3 +55,7 @@ jobs:
           path: ./coverage
           destination: /coverage
 
+      - run:
+          name: report coverage to coveralls
+          command: yarn coveralls
+

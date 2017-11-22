@@ -9,6 +9,7 @@
   "scripts": {
     "test": "mocha",
     "coverage": "nyc --reporter=lcov --reporter=text-summary mocha"
+    "coveralls": "nyc report --reporter=text-lcov | coveralls"
   },
   "dependencies": {
     "caller": "^1.0.1",
@@ -21,6 +22,7 @@
     "value-object": "^0.0.9"
   },
   "devDependencies": {
+    "coveralls": "^3.0.0",
     "eventsource": "^1.0.5",
     "mocha": "^4.0.1",
     "nyc": "^11.3.0",
