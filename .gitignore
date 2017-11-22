@@ -1,5 +1,7 @@
+/.nyc_output
+/coverage
+.DS_Store
 yarn-error.log
 .idea
 node_modules
 yarn.lock
-/dist

@@ -51,4 +51,7 @@ jobs:
           environment:
           - DATABASE_URL: "postgres://postgres@localhost:5432/kaesong-test"
 
+     - store_artifacts:
+          path: ./coverage
+          destination: /coverage
 
