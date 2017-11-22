@@ -46,8 +46,8 @@ jobs:
 
       # run tests!
       - run:
-          name: run tests
-          command: yarn test
+          name: run tests with coverage
+          command: yarn coverage
           environment:
           - DATABASE_URL: "postgres://postgres@localhost:5432/kaesong-test"
 
