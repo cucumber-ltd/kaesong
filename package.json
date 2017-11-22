@@ -8,7 +8,7 @@
   "private": false,
   "scripts": {
     "test": "mocha",
-    "coverage": "nyc --reporter=lcov --reporter=text-summary mocha"
+    "coverage": "nyc --reporter=lcov --reporter=text-summary mocha",
     "coveralls": "nyc report --reporter=text-lcov | coveralls"
   },
   "dependencies": {
