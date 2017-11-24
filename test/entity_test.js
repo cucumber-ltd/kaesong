@@ -138,7 +138,7 @@ describe('Entity', () => {
 
       assertThrows(
         () => entity.applyEvent(event2),
-        'Entity version must be greater on the event to be applied than the current entity version',
+        'Event version (3) should be greater than entity version (3)',
         Error
       )
     })
