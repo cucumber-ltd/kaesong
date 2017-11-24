@@ -78,28 +78,46 @@ const name = 'Lucy'
 const personUid = uuid()
 
 describe('Kaesong', () => {
-  it('updates a read model when a command is dispatched', async () => {
-    const locationsReadModel = new Map()
-    const locationsProjector = new LocationsProjector(locationsReadModel)
+  let locationsReadModel, locationsProjector, domainEventBus, eventStore, domainRepository, commandBus
 
-    const domainEventBus = new DomainEventBus()
-
+  beforeEach(async () => {
+    locationsReadModel = new Map()
+    locationsProjector = new LocationsProjector(locationsReadModel)
+    domainEventBus = new DomainEventBus()
     domainEventBus.connectProjector(locationsProjector)
-    const eventStore = new MemoryEventStore()
+    eventStore = new MemoryEventStore()
     await eventStore.start()
-    const domainRepository = new DomainRepository(domainEventBus, eventStore)
-    const commandBus = new CommandBus(domainRepository)
+    domainRepository = new DomainRepository(domainEventBus, eventStore)
+    commandBus = new CommandBus(domainRepository)
     // TODO: Don't require this registration, commandBus should default to command.constructor.handler
     commandBus.registerCommandHandler(CreatePerson, CreatePerson.handler)
     commandBus.registerCommandHandler(MovePerson, MovePerson.handler)
+  })
+
+  xit('updates a read model when a command is dispatched', async () => {
+    // Given
+    await commandBus.dispatch(new CreatePerson({ personUid, name }))
 
     // When
-    await commandBus.dispatch(new CreatePerson({ personUid, name }))
     await commandBus.dispatch(new MovePerson({ personUid, x: 10, y: 20 }))
 
     // Then
     await eventually(() => {
       assert.deepEqual(locationsReadModel.get('Lucy'), { x: 10, y: 20 })
+    })
+  })
+
+  it('dispatches commands on related entities using a saga', async () => {
+    // Given
+    await commandBus.dispatch(new CreatePerson({ personUid, name }))
+    await commandBus.dispatch(new MovePerson({ personUid, x: 10, y: 20 }))
+
+    // When
+    await commandBus.
+
+    // Then
+    await eventually(() => {
+      assert.deepEqual(messagesHeardBy.get('Sean'), ['Hi, Sean!'])
     })
   })
 })
