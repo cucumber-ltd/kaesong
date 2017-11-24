@@ -85,7 +85,8 @@ class Person extends Entity {
   }
 
   shout({ message }) {
-    this.trigger(MessageShouted, { message, ...this._location })
+    const { x, y } = this._location
+    this.trigger(MessageShouted, { message, x, y })
   }
 
   hear({ message, fromUid }) {
