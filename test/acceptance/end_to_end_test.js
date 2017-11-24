@@ -1,6 +1,8 @@
 const assert = require("assert")
+const { Writable } = require('stream')
 const uuid = require('uuid/v4')
 
+const eventually = require('../../lib/eventually')
 const CommandBus = require("../../lib/command_bus")
 const Entity = require("../../lib/entity")
 const Event = require("../../lib/event")
@@ -12,8 +14,17 @@ const MemoryEventStore = require("../../lib/event_stores/memory_event_store")
 class Person extends Entity {
   static create({ personUid, name }) {
     const person = new this(personUid)
-    person.trigger(PersonCreatedEvent, { name })
+    person.trigger(PersonCreated, { name })
     return person
+  }
+
+  onPersonCreated({ name }) {
+    this._name = name
+  }
+
+  moveTo({ x, y }) {
+    const name = this._name
+    this.trigger(PersonMoved, { name, x, y })
   }
 }
 
@@ -23,7 +34,6 @@ class CreatePerson extends ValueObject.define({ personUid: 'string', name: 'stri
   static async handler(domainRepository, unitOfWork, { personUid, name }) {
     const person = Person.create({ personUid, name })
     unitOfWork.add(person)
-    await domainRepository.commit(unitOfWork)
   }
 }
 
@@ -31,23 +41,45 @@ class MovePerson extends ValueObject.define({ personUid: 'string', x: 'number', 
   static async handler(domainRepository, unitOfWork, { personUid, x, y }) {
     const person = await domainRepository.loadEntityByUid(Person, personUid)
     person.moveTo({ x, y })
-    await domainRepository.commit(unitOfWork)
+    unitOfWork.add(person)
   }
 }
 
 // Events
 
-class PersonCreatedEvent extends Event {
+class PersonCreated extends Event {
 }
 
-PersonCreatedEvent.properties = { name: 'string' }
+PersonCreated.properties = { name: 'string' }
+
+class PersonMoved extends Event {
+}
+
+PersonMoved.properties = { name: 'string', x: 'number', y: 'number' }
 
 const name = 'Lucy'
 const personUid = uuid()
 
 describe('Kaesong', () => {
-  xit('updates a read model when a command is dispatched', async () => {
+  it('updates a read model when a command is dispatched', async () => {
+    const locationsReadModel = new Map()
+
     const domainEventBus = new DomainEventBus()
+
+    const locationsProjector = new Writable({
+      objectMode: true,
+      write: (event, _, cb) => {
+        if (event instanceof PersonCreated) {
+          locationsReadModel.set(event.name, { x: 0, y: 0 })
+        }
+        if (event instanceof PersonMoved) {
+          const { name, x, y } = event
+          locationsReadModel.set(name, { x, y })
+        }
+        cb()
+      }
+    })
+    domainEventBus.connect(locationsProjector)
     const eventStore = new MemoryEventStore()
     await eventStore.start()
     const domainRepository = new DomainRepository(domainEventBus, eventStore)
@@ -56,16 +88,14 @@ describe('Kaesong', () => {
     commandBus.registerCommandHandler(CreatePerson, CreatePerson.handler)
     commandBus.registerCommandHandler(MovePerson, MovePerson.handler)
 
-    const locations = new Map()
 
     // When
-    const { runningCommand: createPerson } = await commandBus.dispatch(new CreatePerson({ personUid, name }))
-    await createPerson
-
-    const { runningCommand: movePerson } = await commandBus.dispatch(new MovePerson({ personUid, x: 10, y: 20 }))
-    await movePerson
+    await commandBus.dispatch(new CreatePerson({ personUid, name }))
+    await commandBus.dispatch(new MovePerson({ personUid, x: 10, y: 20 }))
 
     // Then
-    assert.equal(locations.get('Lucy'), { x: 10, y: 20 })
+    await eventually(() => {
+      assert.deepEqual(locationsReadModel.get('Lucy'), { x: 10, y: 20 })
+    })
   })
 })
