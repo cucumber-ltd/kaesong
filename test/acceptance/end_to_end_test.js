@@ -49,13 +49,30 @@ class MovePerson extends ValueObject.define({ personUid: 'string', x: 'number', 
 
 class PersonCreated extends Event {
 }
-
 PersonCreated.properties = { name: 'string' }
 
 class PersonMoved extends Event {
 }
-
 PersonMoved.properties = { name: 'string', x: 'number', y: 'number' }
+
+// Projectors
+class LocationsProjector {
+  constructor(locationsReadModel) {
+    this._locationsReadModel = locationsReadModel
+  }
+
+  targets() {
+    return [this]
+  }
+
+  onPersonCreated({ name }) {
+    this._locationsReadModel.set(name, { x: 0, y: 0 })
+  }
+
+  onPersonMoved({ name, x, y }) {
+    this._locationsReadModel.set(name, { x, y })
+  }
+}
 
 const name = 'Lucy'
 const personUid = uuid()
@@ -63,23 +80,11 @@ const personUid = uuid()
 describe('Kaesong', () => {
   it('updates a read model when a command is dispatched', async () => {
     const locationsReadModel = new Map()
+    const locationsProjector = new LocationsProjector(locationsReadModel)
 
     const domainEventBus = new DomainEventBus()
 
-    const locationsProjector = new Writable({
-      objectMode: true,
-      write: (event, _, cb) => {
-        if (event instanceof PersonCreated) {
-          locationsReadModel.set(event.name, { x: 0, y: 0 })
-        }
-        if (event instanceof PersonMoved) {
-          const { name, x, y } = event
-          locationsReadModel.set(name, { x, y })
-        }
-        cb()
-      }
-    })
-    domainEventBus.connect(locationsProjector)
+    domainEventBus.connectProjector(locationsProjector)
     const eventStore = new MemoryEventStore()
     await eventStore.start()
     const domainRepository = new DomainRepository(domainEventBus, eventStore)
@@ -87,7 +92,6 @@ describe('Kaesong', () => {
     // TODO: Don't require this registration, commandBus should default to command.constructor.handler
     commandBus.registerCommandHandler(CreatePerson, CreatePerson.handler)
     commandBus.registerCommandHandler(MovePerson, MovePerson.handler)
-
 
     // When
     await commandBus.dispatch(new CreatePerson({ personUid, name }))
