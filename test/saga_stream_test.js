@@ -1,24 +1,27 @@
 'use strict'
 
 const assert = require('assert')
+const sinon = require('sinon')
 const pipeEventsTo = require('../test_support/pipe_events_to')
 const SagaStream = require('../lib/saga_stream')
 const ValueObject = require('value-object')
 
 describe('SagaStream', () => {
   const FINISH_PAYLOAD = 'finished'
-  let sagaStream, startEvent, sagaCreated, handledEvents
+  let sagaStream, startEvent, sagaCreated, handledEvents, injectedParam
 
   class SomethingHappened extends ValueObject.define({ payload: 'string' }) {}
 
   class TestSaga {
-    constructor({ terminate }) {
+    constructor({ terminate, injectedParam }) {
       sagaCreated = true
       this._terminate = terminate
+      this._injectedParam = injectedParam
     }
 
     async onSomethingHappened(event) {
       handledEvents.push(event)
+      this._injectedParam(event.payload)
       if (event.payload === FINISH_PAYLOAD) this._terminate()
     }
   }
@@ -26,9 +29,11 @@ describe('SagaStream', () => {
   beforeEach(() => {
     handledEvents = []
     sagaCreated = false
+    injectedParam = sinon.spy()
     sagaStream = new SagaStream({
       Saga: TestSaga,
       isStartedBy: event => event === startEvent,
+      params: { injectedParam }
     })
     startEvent = new SomethingHappened({ payload: 'started' })
   })
@@ -105,5 +110,14 @@ describe('SagaStream', () => {
       startEvent,
       finishEvent,
     ])
+  })
+
+  it('constructs a saga with the injected params', async () => {
+    const nextEvent = new SomethingHappened({ payload: 'after' })
+    await pipeEventsTo({
+      events: [startEvent, nextEvent],
+      stream: sagaStream,
+    })
+    sinon.assert.calledWith(injectedParam, 'after')
   })
 })
