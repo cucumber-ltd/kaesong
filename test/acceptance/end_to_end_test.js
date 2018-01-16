@@ -10,7 +10,7 @@ const DomainRepository = require("../../lib/domain_repository")
 const DomainEventBus = require("../../lib/domain_event_bus")
 const MemoryEventStore = require("../../lib/event_stores/memory_event_store")
 
-describe('Kaesong', () => {
+describe('Plutonium', () => {
   const lucyName = 'Lucy'
   const seanName = 'Sean'
   const lucyUid = uuid()

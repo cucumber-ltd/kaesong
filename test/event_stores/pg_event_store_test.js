@@ -7,7 +7,7 @@ const verifyContract = require('./verify_event_store_contract')
 const PgEventStore = require('../../lib/event_stores/pg_event_store')
 const { getPgPool, migrateDb } = require('../../lib/pg')
 
-const PG_URL = process.env.DATABASE_URL || 'postgres://localhost/kaesong-test'
+const PG_URL = process.env.DATABASE_URL || 'postgres://localhost/plutonium-test'
 const logError = console.error.bind(console)
 
 describe('PgEventStore', () => {

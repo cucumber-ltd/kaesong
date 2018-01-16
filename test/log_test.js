@@ -14,8 +14,8 @@ describe('log', () => {
     assert.equal(logTag, 'cpro')
   })
 
-  it('defaults to tagging the log name with kaesong', () => {
+  it('defaults to tagging the log name with plutonium', () => {
     const [logTag] = Log.label(__filename).split(':')
-    assert.equal(logTag, 'kaesong')
+    assert.equal(logTag, 'plutonium')
   })
 })
