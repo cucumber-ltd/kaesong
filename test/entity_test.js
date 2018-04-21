@@ -9,8 +9,7 @@ describe('Entity', () => {
 
   beforeEach(() => (lastOnTestEventHandlerEvent = null))
 
-  class TestEvent extends Event {}
-  TestEvent.properties = { a: 'string' }
+  class TestEvent extends Event.define({ a: 'string' }) {}
 
   class HistoricTestEvent extends TestEvent.Historic {}
 
