@@ -50,9 +50,14 @@ describe('CommandBus', () => {
     await eventually(() => assert.deepEqual(sideEffects, ['slow', 'fast']))
   })
 
+
+  it('lets you inject your own promise to wait until the commands were handled and the events were persisted', async () => {
+    await new Promise((resolve, reject) => commandBus.dispatch(new TestSlowCommand(), { resolve, reject }))
+    assert.equal(committedUnitsOfWork.length, 1)
+  })
+
   it('lets you wait until the commands were handled and the events were persisted', async () => {
-    const { runningCommand } = await commandBus.dispatch(new TestSlowCommand())
-    await runningCommand
+    await commandBus.dispatchAndWait(new TestSlowCommand())
     assert.equal(committedUnitsOfWork.length, 1)
   })
 
@@ -60,12 +65,10 @@ describe('CommandBus', () => {
     domainRepository.commit = () => {
       throw new Error('commit fails')
     }
-    const { runningCommand } = await commandBus.dispatch(new TestFastCommand())
-    await assertThrows(async () => await runningCommand, 'commit fails')
+    await assertThrows(async () => await commandBus.dispatchAndWait(new TestFastCommand(), 'commit fails'))
   })
 
   it('@async lets you wait for the command handler to reject', async () => {
-    const { runningCommand } = await commandBus.dispatch(new FailingCommand())
-    await assertThrows(() => runningCommand, null, Error)
+    await assertThrows(() => commandBus.dispatchAndWait(new FailingCommand(), null, Error))
   })
 })
