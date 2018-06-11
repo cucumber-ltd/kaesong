@@ -1,2 +1,3 @@
 --recursive
 --reporter progress
+lib/**/*_test.js
