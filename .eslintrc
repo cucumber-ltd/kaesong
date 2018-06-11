@@ -1,0 +1,20 @@
+{
+  "parserOptions": {
+    "ecmaVersion": 8,
+    "ecmaFeatures": {
+      "experimentalObjectRestSpread": true
+    }
+  },
+  "plugins": ["prettier"],
+  "rules": {
+    "prettier/prettier": ["error"],
+    "eqeqeq": ["error", "always", { "null": "ignore" }],
+    "strict": ["error", "global"]
+  },
+  "env": {
+    "node": true,
+    "es6": true,
+    "mocha": true
+  },
+  "extends": ["eslint:recommended", "prettier"]
+}
