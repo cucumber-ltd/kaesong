@@ -1,6 +1,6 @@
 {
   "name": "plutonium",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "CQRS infrastructure for JavaScript",
   "main": "lib",
   "author": "Julien Biezemans, Aslak Hellesøy, Steve Tooke, Romain Gerard, Matt Wynne, Josh Chisholm",
