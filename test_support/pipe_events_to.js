@@ -21,7 +21,7 @@ module.exports = async ({
       .pipe(
         new Writable({
           objectMode: true,
-          highWaterMark: 0,
+          
           write: (_, __, cb) => cb(),
         })
       )
