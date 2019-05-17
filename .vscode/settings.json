@@ -1,0 +1,4 @@
+{
+    "mochaExplorer.optsFile": "test/mocha.opts",
+    "mochaExplorer.files": "lib/**/*.spec.js"
+}
