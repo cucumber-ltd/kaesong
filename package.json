@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "caller": "^1.0.1",
+    "debug": "^4.1.1",
     "es6-error": "^4.0.2",
     "microtime": "^2.1.8",
     "monet": "0.9.0-alpha.4",
